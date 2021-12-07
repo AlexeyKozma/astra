@@ -9,9 +9,9 @@ upgrade_s () {
 }
 
 add_soft() {
-    for i in ${list_i[@]} 
+    for i in "${list_i[@]}" 
     do    
-        apt install $i 
+        apt install "$i" 
     done
     sleep 1
 }
@@ -64,17 +64,30 @@ set_lib() {
 install_i3 () {
     local wm_="i3-wm"
     list_i=()
-    echo "----------------------Подготовка к установке '$wm_'--------------------------"
+    echo -e "----------------------Подготовка к установке '$wm_'--------------------------"
     list_i+=("meson" "dh-autoreconf" "libxcb-keysyms1-dev" "libpango1.0-dev" "libxcb-util0-dev" "xcb" "libxcb1-dev" "libxcb-icccm4-dev" "libyajl-dev" "libev-dev" "libxcb-xkb-dev" 
     "libxcb-cursor-dev" "libxkbcommon-dev" "libxcb-xinerama0-dev" "libxkbcommon-x11-dev" "libstartup-notification0-dev" "libxcb-randr0-dev" "libxcb-xrm0" "libxcb-xrm-dev" "libxcb-shape0" "libxcb-shape0-dev")
     add_soft
-    echo "----------------------Процесс установки '$wm_'--------------------------"
-    local in_i3=$(  git clone https://github.com/Airblader/i3. git i3-gaps
+    echo -e "----------------------Процесс установки '$wm_'--------------------------"
+    local in_i3=$(  git clone https://github.com/Airblader/i3.git i3-gaps
                     cd i3-gaps
                     mkdir -p build && cd build
                     meson --prefix /usr/local
                     ninja
                     sudo ninja install && echo "exec i3" > ~/.xinitrc )
+    echo -e "----------------------Процесс загркзки с github.com --------------------------"                
+    local in_i3=$(git clone https://github.com/Airblader/i3.git i3-gaps)
+    if [[ "$in_i3" -eq 0 ]] && [[ -d ~/i3-gaps ]] 
+    then
+       local build_=$(cd i3-gaps | meson bould | ninja -c build | sudo ninja -c build install) 
+       if [[ $build_ -eq 0 ]] ; then
+            echo "exec i3" > ~/.xinitrc 
+       else 
+            echo "Ошибка при сборке!"     
+       fi 
+    else 
+        echo "Ошибка при скачивании!"     
+    fi
     echo "----------------------Завершение установки '$wm_' --------------------------"                
     sleep 1
 }
