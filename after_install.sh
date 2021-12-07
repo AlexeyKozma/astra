@@ -5,14 +5,17 @@ list_i=()
 list_i+=("gcc" "g++" "make" "cmake" "gdb" "git" "wget" "curl")
 upgrade_s () {
     local up_=$(apt update && apt dist-upgrade)
+    sleep 1
 }
 
 add_soft() {
-    for i in "${list_i[@]}" 
+    for i in ${list_i[@]} 
     do    
-        local res_=$(apt install $i)
+        apt install $i 
     done
+    sleep 1
 }
+
 
 add_yandex() {
     echo "deb https://mirror.yandex.ru/debian/ stretch main contrib non-free" >> /etc/apt/sources.list 
@@ -20,6 +23,7 @@ add_yandex() {
     wget https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG && sudo apt-key add YANDEX-BROWSER-KEY.GPG
     source /opt/yandex/browser-beta/update-ffmpeg
     upgrade_s
+    sleep 1
 }
 
 set_base() {
@@ -31,7 +35,7 @@ set_base() {
     echo "deb https://mirror.yandex.ru/debian/ stretch main contrib non-free" >> /etc/apt/sources.list
     upgrade_s
     echo '----------------------Настойка после установки-------------------------'
-    sleep 3
+    sleep 1
 }
 
 
@@ -54,7 +58,25 @@ set_lib() {
             upgrade_s
          )
     echo '----------------------Настойка после установки-------------------------'
-    sleep 3
+    sleep 1
+}
+
+install_i3 () {
+    local wm_="i3-wm"
+    list_i=()
+    echo "----------------------Подготовка к установке '$wm_'--------------------------"
+    list_i+=("meson" "dh-autoreconf" "libxcb-keysyms1-dev" "libpango1.0-dev" "libxcb-util0-dev" "xcb" "libxcb1-dev" "libxcb-icccm4-dev" "libyajl-dev" "libev-dev" "libxcb-xkb-dev" 
+    "libxcb-cursor-dev" "libxkbcommon-dev" "libxcb-xinerama0-dev" "libxkbcommon-x11-dev" "libstartup-notification0-dev" "libxcb-randr0-dev" "libxcb-xrm0" "libxcb-xrm-dev" "libxcb-shape0" "libxcb-shape0-dev")
+    add_soft
+    echo "----------------------Процесс установки '$wm_'--------------------------"
+    local in_i3=$(  git clone https://github.com/Airblader/i3. git i3-gaps
+                    cd i3-gaps
+                    mkdir -p build && cd build
+                    meson --prefix /usr/local
+                    ninja
+                    sudo ninja install && echo "exec i3" > ~/.xinitrc )
+    echo "----------------------Завершение установки '$wm_' --------------------------"                
+    sleep 1
 }
 
 main() 
@@ -67,6 +89,7 @@ main()
         'lib') set_lib ;;
         'yandex') add_yandex ;;
         'soft') add_soft ;;
+        'install i3') install_i3 ;;
         *) echo "Некоректные параметры!" ;;
         esac
         shift    
