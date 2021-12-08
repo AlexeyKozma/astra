@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+dir_build="/tmp/"
 list_e=()
 list_i=()
 list_i+=("gcc" "g++" "make" "cmake" "gdb" "git" "wget" "curl")
@@ -64,29 +65,49 @@ set_lib() {
 install_i3 () {
     local wm_="i3-wm"
     list_i=()
-    echo -e "----------------------Подготовка к установке '$wm_'--------------------------"
+    echo "----------------------Подготовка к установке $wm_--------------------------"
     list_i+=("meson" "dh-autoreconf" "libxcb-keysyms1-dev" "libpango1.0-dev" "libxcb-util0-dev" "xcb" "libxcb1-dev" "libxcb-icccm4-dev" "libyajl-dev" "libev-dev" "libxcb-xkb-dev" 
-    "libxcb-cursor-dev" "libxkbcommon-dev" "libxcb-xinerama0-dev" "libxkbcommon-x11-dev" "libstartup-notification0-dev" "libxcb-randr0-dev" "libxcb-xrm0" "libxcb-xrm-dev" "libxcb-shape0" "libxcb-shape0-dev")
+    "libxcb-cursor-dev" "libxkbcommon-dev" "libxcb-xinerama0-dev" "libxkbcommon-x11-dev" "libstartup-notification0-dev" "libxcb-randr0-dev" "libxcb-xrm0" "libxcb-xrm-dev" "libxcb-shape0" "libxcb-shape0-dev"
+    "i3" "xorg" "suckless-tools" "lightdm" "rofi" "firefox-esr" "wicd" "cups" "xfce4-power-manager" "conky" "htop" "pulseaudio" "pavucontrol" "alsa-utils" "xbindkeys" "arandr" "xbacklight" "feh" "compton" 
+    "snapd" "numlockx" "unclutter" "cmus" "ufw")
     add_soft
-    echo -e "----------------------Процесс установки '$wm_'--------------------------"
-    echo -e "----------------------Процесс загркзки с github.com --------------------------"                
-    local in_i3=$(git clone https://github.com/Airblader/i3.git i3-gaps)
-    if [[ "$in_i3" -eq 0 ]] #&& [[ -d ~/i3-gaps ]] 
+    echo "----------------------Процесс загрузки с github.com --------------------------" 
+    echo "----------------------переход в директорию сборки ----------------------------"              
+    local in_i3=$(cd "$dir_build" && git clone https://github.com/Airblader/i3.git i3-gaps)
+    if [[ "$in_i3" -eq 0 ]] 
     then
-       local build_=$(cd i3-gaps
+       echo "------------------- Каталог проекта скачен ----------------------------------"
+       local build_=$(
+                    chown -Rf "$user" i3-gaps
+                    cd i3-gaps
                     mkdir -p build && cd build
-                    meson --prefix /usr/local
-                    ninja
-                    sudo ninja install && echo "exec i3" > ~/.xinitrc) 
-       if [[ $build_ -eq 0 ]] ; then
-            echo "exec i3" > ~/.xinitrc 
+                    meson --prefix /usr/local)                 
+       if [[ "$build_" -eq 0 ]] ; then
+            echo "-----------------Сборка завершилась успешно-----------------------"
+            echo "----------------------Процесс установки $wm_--------------------------" 
+            local install_res=$(ninja
+                    sudo ninja install)
+            if [[ $install_res -eq 0 ]] ; then
+                echo "-------------------Настройка после установи------------------------"
+                echo "exec i3" > "$HOME"/.xinitrc
+                numlockx on
+            fi       
        else 
             echo "Ошибка при сборке!"     
        fi 
     else 
         echo "Ошибка при скачивании!"     
     fi
-    echo "----------------------Завершение установки '$wm_' --------------------------"                
+    echo "----------------------Завершение установки $wm_ --------------------------" 
+    cd                
+    sleep 1
+}
+
+install_fm () {
+    echo "----------------------Установка файлового менеджера"
+    list_i=()
+    list_i+=("pcmanfm-qt" "pcmanfm-qt-l10n" "libfm-qt3")
+    add_soft
     sleep 1
 }
 
@@ -100,16 +121,18 @@ main()
         'lib') set_lib ;;
         'yandex') add_yandex ;;
         'soft') add_soft ;;
-        'install i3') install_i3 ;;
-        *) echo "Некоректные параметры!" ;;
+        'i3') install_i3 ;;
+        'fm') install_fm ;;
+        *) echo "Некорректные параметры!" ;;
         esac
         shift    
     done    
     else 
-        echo -e "Для работы скрипта требуются права 'root' !"
+        echo "Для работы скрипта требуются права 'root' !"
     fi
     echo "Установка завершена..."
     return 0
 }
 
 main "$@"
+
