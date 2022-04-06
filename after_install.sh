@@ -5,7 +5,7 @@ list_e=()
 list_i=()
 list_i+=("gcc" "g++" "make" "cmake" "gdb" "git" "wget" "curl")
 upgrade_s () {
-    local up_=$(apt update && apt dist-upgrade)
+    apt update && apt dist-upgrade
     sleep 1
 }
 
@@ -19,22 +19,22 @@ add_soft() {
 
 
 add_yandex() {
-    echo "deb https://mirror.yandex.ru/debian/ stretch main contrib non-free" >> /etc/apt/sources.list 
+
     echo "deb [arch=amd64] http://repo.yandex.ru/yandex-browser/deb beta main" >> /etc/apt/sources.list.d/yandex-browser.list
     wget https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG && sudo apt-key add YANDEX-BROWSER-KEY.GPG
+    add_soft yandex-browser-beta
     source /opt/yandex/browser-beta/update-ffmpeg
-    upgrade_s
+    
     sleep 1
 }
 
 set_base() {
     echo '----------------------Настойка источников-------------------------'
     echo '-----------------подключение репозиториев Debian...'
-    apt install debian-archive-keyring dirmngr
-    apt-key adv --recv-keys --keyserver keys.gnupg.net EF0F382A1A7B6500
+    #apt install debian-archive-keyring dirmngr
+    #apt-key adv --recv-keys --keyserver keys.gnupg.net EF0F382A1A7B6500
     echo "deb https://download.astralinux.ru/astra/testing/orel/repository orel contrib main non-free" > /etc/apt/sources.list
-    echo "deb https://mirror.yandex.ru/debian/ stretch main contrib non-free" >> /etc/apt/sources.list
-    upgrade_s
+    echo "deb [trusted=true] https://mirror.yandex.ru/debian/ stretch main contrib non-free" >> /etc/apt/sources.list
     echo '----------------------Настойка после установки-------------------------'
     sleep 1
 }
@@ -42,22 +42,7 @@ set_base() {
 
 set_lib() {
     echo '----------------------Установка пакетов-------------------------'
-     local f_=$(
-            mkdir /tmp/install_glibc/
-            cd /tmp/install_glibc/
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc6_2.28-10_amd64.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/locales_2.28-10_all.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc-l10n_2.28-10_all.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc-bin_2.28-10_amd64.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc-dev-bin_2.28-10_amd64.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc6-dev_2.28-10_amd64.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc6-dbg_2.28-10_amd64.deb
-            wget http://ftp.ru.debian.org/debian/pool/main/g/glibc/libc6-i386_2.28-10_amd64.deb
-            dpkg -i *
-            cd ~
-            rm -rf /tmp/install_glibc/
-            upgrade_s
-         )
+    apt-get -t buster install libc6
     echo '----------------------Настойка после установки-------------------------'
     sleep 1
 }
@@ -70,7 +55,7 @@ install_i3 () {
     "libxcb-cursor-dev" "libxkbcommon-dev" "libxcb-xinerama0-dev" "libxkbcommon-x11-dev" "libstartup-notification0-dev" "libxcb-randr0-dev" "libxcb-xrm0" "libxcb-xrm-dev" "libxcb-shape0" "libxcb-shape0-dev"
     "i3" "xorg" "suckless-tools" "lightdm" "rofi" "firefox-esr" "wicd" "cups" "xfce4-power-manager" "conky" "htop" "pulseaudio" "pavucontrol" "alsa-utils" "xbindkeys" "arandr" "xbacklight" "feh" "compton" 
     "snapd" "numlockx" "unclutter" "cmus" "ufw")
-    add_soft
+    add_soft $list_i
     echo "----------------------Процесс загрузки с github.com --------------------------" 
     echo "----------------------переход в директорию сборки ----------------------------"              
     local in_i3=$(cd "$dir_build" && git clone https://github.com/Airblader/i3.git i3-gaps)
@@ -107,7 +92,7 @@ install_fm () {
     echo "----------------------Установка файлового менеджера"
     list_i=()
     list_i+=("pcmanfm-qt" "pcmanfm-qt-l10n" "libfm-qt3")
-    add_soft
+    add_soft $list_i
     sleep 1
 }
 
@@ -130,6 +115,7 @@ main()
     else 
         echo "Для работы скрипта требуются права 'root' !"
     fi
+    upgrade_s
     echo "Установка завершена..."
     return 0
 }
