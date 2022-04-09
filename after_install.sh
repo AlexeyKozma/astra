@@ -20,21 +20,31 @@ add_soft() {
 
 add_yandex() {
 
-    echo "deb [arch=amd64] http://repo.yandex.ru/yandex-browser/deb beta main" >> /etc/apt/sources.list.d/yandex-browser.list
+    sudo sh -c "echo 'deb [arch=amd64] http://repo.yandex.ru/yandex-browser/deb beta main' >> /etc/apt/sources.list.d/yandex-browser.list"
     wget https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG && sudo apt-key add YANDEX-BROWSER-KEY.GPG
     add_soft yandex-browser-beta
-    source /opt/yandex/browser-beta/update-ffmpeg
+    sudo sh -c "source /opt/yandex/browser-beta/update-ffmpeg"
     
     sleep 1
 }
 
 set_base() {
     echo '----------------------Настойка источников-------------------------'
+    sudo sh -c "echo 'deb https://download.astralinux.ru/astra/testing/orel/repository orel contrib main non-free' > /etc/apt/sources.list"
     echo '-----------------подключение репозиториев Debian...'
-    #apt install debian-archive-keyring dirmngr
-    #apt-key adv --recv-keys --keyserver keys.gnupg.net EF0F382A1A7B6500
-    echo "deb https://download.astralinux.ru/astra/testing/orel/repository orel contrib main non-free" > /etc/apt/sources.list
-    echo "deb [trusted=true] https://mirror.yandex.ru/debian/ stretch main contrib non-free" >> /etc/apt/sources.list
+    echo "[+] Adding Debian Buster repo..."
+    sudo sh -c "echo 'deb [trusted=yes] https://mirror.yandex.ru/debian/ buster main contrib non-free' >> /etc/apt/sources.list"
+    echo "[+] Adding repo's GPG keys..."
+    gpg --keyserver keyserver.ubuntu.com --recv-key 648ACFD622F3D138
+    gpg -a --export 648ACFD622F3D138 | sudo apt-key add -
+    gpg --keyserver keyserver.ubuntu.com --recv-key 0E98404D386FA1D9
+    gpg -a --export 0E98404D386FA1D9 | sudo apt-key add -
+    gpg --keyserver keyserver.ubuntu.com --recv-key DCC9EFBF77E11517
+    gpg -a --export DCC9EFBF77E11517 | sudo apt-key add -
+    echo "[+] Updating..."
+    upgrade_s
+    echo "[+] Installing snap..."
+    add_soft "snapd -y"
     echo '----------------------Настойка после установки-------------------------'
     sleep 1
 }
