@@ -111,10 +111,12 @@ docker() {
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
     echo "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable" | sudo tee -a /etc/apt/sources.list
     sudo apt update
-    sudo apt install docker-ce
+    sudo apt install docker-ce docker-ce-cli containerd.io
     if [[ $(docker --version) ]] ; then 
-        sudo usermod -aG docker ${USER}
-        sudo su - ${USER}
+        sudo groupadd docker
+        sudo usermod -aG docker $USER
+        sudo systemctl enable docker.service
+        sudo systemctl enable containerd.service
         docker run hello-world
         sudo curl -L https://github.com/docker/compose/releases/download/2.11.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
